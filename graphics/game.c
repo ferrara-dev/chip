@@ -51,23 +51,22 @@ void move_ship(void) {
 
 /* Check Collision */
 /*  @author Johan Edman & Alex Diaz */
-/*
-void detect_collision(void) {
+
+void detect_missile_hit(void) {
     int i, j;
     for (i = 0; i < AMMO; i++) {
-        if (m_array[i].is_alive) {
-            for (j = 1; j = AMMO; j++)
-                if (m_array[j].is_alive)
-                    if (check_collision(m_array[j], m_array[i])) {
+        if (mt_array[0].is_alive) {
+                if (m_array[i].is_alive)
+                    if (check_collision(mt_array[0], m_array[i])) {
                         m_array[i].is_alive = 0;
-                        m_array[j].is_alive = 1;
+                        mt_array[0].is_alive = 0;
                         draw(m_array[i], 0);
-                        draw(m_array[j], 1);
+                        draw(mt_array[0], 0);
                     }
         }
     }
 }
-*/
+
 
 /* Spawn missile */
 void spawn_missile(void) {
@@ -99,6 +98,11 @@ void reload_missiles(void) {
     }
 }
 
+/** Spawn a meteor **/
+
+void spawn_meteor(void){
+    mt_array[0] = meteor_new();
+}
 void game_init(void) {
     int i = 0;
     for (i = 0; i < AMMO; i++)
@@ -115,16 +119,20 @@ void LED_test_start(void) {
 void display_test_start(void) {
     /// Init player ///
     player_new();
+    spawn_meteor();  /// Tillfällig för att testa "spawn_meteor()"
     set_tmr2_P(TMR2_PLAY);
     state = STATE_PLAYING;
 }
 
 void display_test_tick(void) {
+    detect_missile_hit();
     draw(p, 1);
     for (int i = 0; i < AMMO; i++)
         if (m_array[i].is_alive) {
             object_update(&m_array[i]);
         }
+    //if(mt.is_alive)
+        object_update(&mt_array[0]);
 }
 
 

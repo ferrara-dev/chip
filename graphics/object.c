@@ -55,6 +55,34 @@ Missile missile_new(Object p) {
     return m;
 }
 
+Meteor meteor_new(void) {
+    Meteor meteor;
+    meteor.size = 10;
+    meteor.posX = 110;                  ///randint(120, 130);
+    meteor.posY =  15;              ///randint(5, 30 - r.size);
+    meteor.velX = 0;        ///(0.1 * difficulty + 1) * -randfloat(0.5, 1.2);
+    meteor.velY = 0;
+    meteor.is_alive = 1;
+    meteor.radius = 4;
+
+   // if ((rand() & 100) > 50)
+        //meteor.velY = (0.1 * (float)(difficulty) + 1) * -randfloat(-0.5, 0.5);
+
+    const int r_shape[10][10] = {
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 1, 1, 0, 0, 0, 0},
+            {0, 0, 0, 1, 1, 1, 1, 0, 0, 0}, {0, 0, 0, 1, 1, 1, 1, 0, 0, 0},
+            {0, 0, 0, 0, 1, 1, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    };
+
+    int i, j;
+    for (i = 0; i < 10; i++)
+        for (j = 0; j < 10; j++)
+            meteor.objForm[i][j] = r_shape[i][j];
+
+    return meteor;
+}
 /* Object movement */
 /*  @author Johan Edman */
 void object_move(Object *o) {
@@ -94,6 +122,8 @@ void object_update(Object *o) {
             object_move(o);
         draw(*o, 1);
     }
+    else
+        draw(*o,0);
 
 }
 
@@ -113,5 +143,5 @@ int within_screen(Object *o) {
 
 int dist(float, float, float, float);
 int check_collision(Object dis, Object dat) {
-    return dist(dis.posX, dis.posY, dat.posX, dat.posY) < dis.radius;
+    return dist(dis.posX, dis.posY, dat.posX, dat.posY) ==0;
 }

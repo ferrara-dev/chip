@@ -15,7 +15,7 @@
 /.idea/misc.xml
 /.idea/modules.xml
 /.deps/object.c.P
-/.idea/project_edition2.iml
+/.idea/*
 /.vs/slnx.sqlite
 /.deps/stubs.c.P
 /.deps/timers.c.P

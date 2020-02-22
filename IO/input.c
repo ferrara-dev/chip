@@ -56,6 +56,70 @@ int getBtn(int index) {
     return 0;
 }
 
+/** returns current value from chosen switch */
+int getSwitch(int index) {
+    switch (index) {
+        case 1:
+            return (PORTD & (0x1 << 8)) >> 8;
+        case 2:
+            return (PORTD & (0x1 << 9)) >> 9;
+        case 3:
+            return (PORTD & (0x1 << 10)) >> 10;
+        case 4:
+            return (PORTD & (0x1 << 11)) >> 11;
+        default:
+            return 0;
+    }
+    return 0;
+}
+
+void set_sw1_interrupt(void) {
+    /** enabling interupts from sw1 **/
+    IPC(1) |= 0x1c000000;
+    IEC(0) = IEC(0) | (1 << 7);
+
+}
+
+void set_sw2_interrupt(void) {
+    /** enabling interupts from sw2  **/
+    IECSET(0) = 0x800;    //enable interrupt for int2, bit 11
+    IPCSET(2) = 0x1C000000; //set priority of switch 2 to 111
+}
+
+void set_sw3_interrupt(void) {
+    /** enabling interupts from sw3  **/
+    IPC(3) |= 0x1c000000;
+    IEC(0) = IEC(0) | (1 << 15);
+}
+
+void set_sw4_interrupt(void) {
+    /** enabling interupts from sw3  **/
+    IPC(4) |= 0x1c000000;
+    IEC(0) |= (1 << 19);
+
+}
+
+void set_sw_interrupts(int index) {
+    switch (index) {
+        case 1:
+            /** enabling interupts from sw1 **/
+            set_sw1_interrupt();
+            break;
+        case 2:
+            /** enabling interupts from sw2  **/
+            set_sw2_interrupt();
+            break;
+        case 3:
+            set_sw3_interrupt();
+            break;
+        case 4:
+            set_sw4_interrupt();
+            break;
+        default:
+            return;
+    }
+}
+
 void input_init(void) {
     /* PORTD takes SW4-SW1 in bits <11:8> and BTN4-BTN2 in bits <7:5> */
     TRISDSET = 0x7f << 5;
@@ -71,6 +135,7 @@ int getbtns_all(void) {
     return (((PORTF >> 1) & 0x1) | ((PORTD & (0x7 << 5)) >> 4));
 }
 
+
 /* As input_poll() will be called continously, data will need to be 
  * collected continously and then reset when acted upon
  */
@@ -83,9 +148,8 @@ uint8_t input_poll(void) {
     return data;
 }
 
-
-
 static int count = 0;
+
 void input_update(void) {
     /* State needs to be saved in case the player pauses whilst under */
     /* some kind of boost */
@@ -103,12 +167,10 @@ void input_update(void) {
             interface_menu_load_paused();
         }
 
-        if (data & 0x1) {
-
-        }
     }
+
     /* Game instructions */
-    if (state == STATE_MENU_TESTLED || state == STATE_PLAYING) {
+    if (state == STATE_MENU_TESTLED || state == STATE_PLAYING_SURVIVAL_MODE) {
         if (getsw() == 8) {
             prev_state = state;
             interface_menu_load_paused();
@@ -118,20 +180,23 @@ void input_update(void) {
             move_ship();
         }
 
-        if (getBtn(3)) {
+        if (getsw() == 1) {
             reload_missiles();
-            for(int i = 0; i<AMMO; i++){
-                if(!m_array[i].is_alive) {
+        }
+
+        if (getBtn(3)) {
+            for (int i = 0; i < AMMO; i++) {
+                if (!m_array[i].is_alive) {
                     m_array[i].posX = p.posX;
                     m_array[i].posY = p.posY;
                 }
             }
-            if(count % 5==0)
-                shoot();
+            if (count % 5 == 0)
+                shoot('p');
         }
 
-        count ++;
-        if(count > 10000)
+        count++;
+        if (count > 10000)
             count = 0;
 
     }
@@ -165,21 +230,22 @@ void input_update(void) {
     data = 0;
 }
 
+/**
+ * Initializes analogue pins and turns on ADC.
+ * Author: Johan Edman
+ */
+void init_adc(void) {
+    AD1PCFG = 0xFBFF;
+    AD1CON1 = 4 << 8 | 7 << 5;
+    AD1CHS = 1 << 17;
+    TRISBSET = 1 << 11;
+    AD1CON2 = 0;
+    AD1CON3SET = 1 << 15;
 
+    /* Set up output pins */
 
-
-/************ NOT USED ************
- * Initializes buttons and switches.
- ********************************* /
-void init_input() {
-    set_btn(1, SET);
-    set_btn(2, SET);
-    set_btn(3, SET);
-    set_btn(4, SET);
-
-    set_sw(1, SET);
-    set_sw(2, SET);
-
+    /* Turn on ADC */
+    AD1CON1SET = 1 << 15;
 }
-**********************************/
+
 

@@ -12,8 +12,6 @@ void quicksleep(int cyc) {
 	for(i = cyc; i > 0; i--);
 }
 
-
-
 uint8_t spi_send_recv(uint8_t data) {
 	while(!(SPI2STAT & 0x08));
 	SPI2BUF = data;
@@ -56,6 +54,23 @@ void itodsconv(char *buffer, int x)
 
 
 
+unsigned int seed(void) {
+    int n = 8;
+    unsigned int seed = n;
+    for (; n > 0; n--) {
+        /* Start sampling, wait until conversion is done */
+        AD1CON1 |= (0x1 << 1);
+        while (!(AD1CON1 & (0x1 << 1)))
+            seed ^= ADC1BUF0 + TMR2;
+        while (!(AD1CON1 & 0x1))
+            seed ^= ADC1BUF0 + TMR2;
+
+        /* Get the analog value */
+        seed ^= ADC1BUF0 + TMR2;
+    }
+    return seed;
+}
+
 /* Reverse every bit in one byte 
  */
 int8_t reverse_byte(int8_t x)
@@ -69,12 +84,30 @@ int8_t reverse_byte(int8_t x)
 	return y;
 }
 
+
+
+int randint(int min, int max) {
+    int r = rand() % (max + 1);
+    if (r > min)
+        return r;
+    return r + min;
+}
+
+float randfloat(float min, float max) {
+    return (((float)rand() / (float)RAND_MAX)) * (max - min) + min;
+}
 /********************************
  * Had to write my own function
  * to calculate sqrt.
  * Couldn't get #include<math.h>
  * to work.
- */
+ ******************************/
+int randomize(int chance){
+    if(randint(1,100) <= chance)
+        return 1;
+    else
+        return 0;
+}
 float sqrt(int a)
 {
     int number = a;

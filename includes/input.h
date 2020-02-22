@@ -44,9 +44,9 @@ void input_update(void);
 int getsw(void);
 int getbtns_all(void);
 int getBtn(int);
-
-
-
+void set_sw_interrupts(int index);
+int getSwitch(int index);
+void init_adc(void);
 /************ NOT USED ************
  * Initializes buttons and switches.
  ********************************* /

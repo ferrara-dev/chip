@@ -12,8 +12,6 @@
 
 #define BUTTONS 4 /* 4 pages/lines available, and as such; 4 buttons */
 
-
-
 static Button buttons[BUTTONS]; 
 static int selected = 0;
 int getsw(void);
@@ -70,14 +68,31 @@ void interface_button_next(void)
 		selected = 0;
 }
 
+void interface_menu_load_highscores(void)
+{
+    state = STATE_MENU_HIGHSCORES;
+
+    char buffer[BUTTON_BUFFER_SIZE];
+    buffer[1] = '.';
+    buffer[2] = ' ';
+
+    int i;
+    for(i = 0; i < GAME_HIGHSCORES; ++i)
+    {
+        buffer[0] = '1' + i;
+        itodsconv(&buffer[3], high_scores[i]);
+        button_cons(&buttons[i], buffer, NULL);
+    }
+    button_cons(&buttons[3], "BACK", interface_menu_load_main);
+}
 
 void interface_menu_load_main(void)
 {
 	state = STATE_MENU_MAIN;
-	
+
 	button_cons(&buttons[0], "MAIN MENU",      NULL);
-	button_cons(&buttons[1], "TEST GPIO",  interface_menu_load_gpioTest);
-	button_cons(&buttons[2], "HIGHSCORES",  NULL);
+	button_cons(&buttons[1], "TEST GPIO!",  interface_menu_load_gpioTest);
+	button_cons(&buttons[2], "HIGHSCORES",  interface_menu_load_highscores);
 	button_cons(&buttons[3], "ABOUT", interface_menu_load_about);
 }
 
@@ -95,18 +110,17 @@ void interface_menu_load_gpioTest(void)
     //state = STATE_MENU_TESTGPIO;
     button_cons(&buttons[0], "TEST LEDS", LED_test_start);
     button_cons(&buttons[1], "TEST INPUT",   NULL);
-    button_cons(&buttons[2], "TEST DISPLAY ", display_test_start);
+    button_cons(&buttons[2], "SURVIVAL MODE ", survival_mode_start);
     button_cons(&buttons[3], "BACK",    interface_menu_load_main);
 }
 
-
-
+char* itoaconv(int);
 void interface_menu_load_paused(void)
 {
     state = STATE_MENU_PAUSED;
-    button_cons(&buttons[0], "PAUSED", NULL);
+    button_cons(&buttons[0],itoaconv(first_place), NULL);
     button_cons(&buttons[1], "RETURN TO MAIN MENU", interface_menu_load_main);
     button_cons(&buttons[2], "CONTINUE TEST", NULL);
-    button_cons(&buttons[3], " ", NULL);
+  //  button_cons(&buttons[3], " ", NULL);
 
 }

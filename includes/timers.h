@@ -8,3 +8,5 @@ void enableMultiVectorMode(void);
 void enable_tmr2(void);
 void enable_tmr2_interrupt(void);
 void  enable_tmr3(void);
+void enableTimer3(int period, int priority, int prescaling, int interrupts);
+int check_tmr2_P(int);

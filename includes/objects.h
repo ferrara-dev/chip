@@ -1,30 +1,36 @@
-
+#pragma once
 #define _OBJECT_H_
 #define AMMO 6
+#define METEORS 6
+#define ENEMIES 6
+#define ENEMY_AMMO 3
+#include <stdint.h>
+void *stdin, *stdout, *stderr, *errno;
 /* Contains Shape of Object */
-/*  @author Johan Edman */
 typedef int objectPointer[10][10];
-
-/*  @author Alex Diaz - Tweaked by Johan Edman*/
+typedef int8_t objectPointer2[10];
+/*  typdef struct for in-game objects */
 typedef struct Object {
     float posX, posY, size, velX, velY;
+    int health;
     int is_alive, radius;
     objectPointer objForm;
-} Object, Player, Meteor, Missile, Enemy;
-
-/* Player Constructor */
-void player_new(void);
+    objectPointer2 objForm2;
+} Object, Player, Meteor, Missile, Enemy, EnemyShot;
 
 Player p;
-Missile m1;
-Missile m2;
-Missile m3;
-Missile m4;
 Missile m_array[AMMO];
-Meteor mt_array[1];
-Meteor mt;
-Missile missile_new(Object p);
-Meteor meteor_new(void);
+Meteor mt_array[METEORS];
+Enemy e_array[ENEMIES];
+EnemyShot es_array[ENEMY_AMMO];
+
+/** Object Constructors **/
+void new_player(void);
+Missile new_missile(void);
+Meteor new_meteor(void);
+Enemy new_enemy(void);
+EnemyShot new_enemyShot(void);
+
 void object_move(Object *o);
 int check_collision(Object d, Object t);
 void within_border(Object *o);

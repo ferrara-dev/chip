@@ -3,9 +3,8 @@
 
 #include <string.h>
 #include "../includes/button.h"
-#include "../includes/peripherals.h"
 #include "../includes/icon.h"
-
+#include "../includes/graphics.h"
 
 void button_cons(Button *button, char const *string, void (*function)(void))
 {

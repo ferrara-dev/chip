@@ -24,40 +24,32 @@
  *      BTN1: Right
  */
 
-enum INPUT
-{
-    BTN1 = 0x01,
-    BTN2 = 0x02,
-    BTN3 = 0x04,
-    BTN4 = 0x08,
-    SW1  = 0x10,
-    SW2  = 0x20,
-    SW3  = 0x40,
-    SW4  = 0x80
+enum INPUT {
+    BTN1,
+    BTN2,
+    BTN3,
+    BTN4,
+    SW1,
+    SW2,
+    SW3,
+    SW4
 };
 
 
 static volatile int8_t data = 0;
+
 void input_init(void);
-uint8_t input_poll(void);
+void set_sw4_interrupt(void);
 void input_update(void);
+
 int getsw(void);
+
 int getbtns_all(void);
+
 int getBtn(int);
+
 void set_sw_interrupts(int index);
+
 int getSwitch(int index);
+
 void init_adc(void);
-/************ NOT USED ************
- * Initializes buttons and switches.
- ********************************* /
-void init_input() {
-    set_btn(1, SET);
-    set_btn(2, SET);
-    set_btn(3, SET);
-    set_btn(4, SET);
-
-    set_sw(1, SET);
-    set_sw(2, SET);
-
-}
-**********************************/

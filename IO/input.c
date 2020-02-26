@@ -5,12 +5,13 @@
 #include "../includes/peripherals.h"
 #include "../includes/game.h"
 #include "../includes/entity.h"
-#include "../includes/interface.h"
+#include "../includes/menu.h"
 #include "../includes/functions.h"
 #include "../includes/objects.h"
 #include "../includes/timers.h"
+#include "../includes/graphics.h"
 /* There needs to be a delay in the menus, otherwise it's hard to select buttons */
-#define MENU_DELAY 1000000
+#define MENU_DELAY 1200000
 
 //void interface_menu_load_paused(void);
 
@@ -97,6 +98,8 @@ void set_sw4_interrupt(void) {
     IPC(4) |= 0x1c000000;
     IEC(0) |= (1 << 19);
 
+    INTCONSET = 0x00000010; // clear the bit for falling edge trigger
+
 }
 
 void set_sw_interrupts(int index) {
@@ -136,53 +139,33 @@ int getbtns_all(void) {
 }
 
 
-/* As input_poll() will be called continously, data will need to be 
- * collected continously and then reset when acted upon
- */
-static volatile int8_t data = 0;
-
-uint8_t input_poll(void) {
-    data |= (PORTD >> 4) & 0xFE; /* SW4-SW1, BTN4-BTN3 */
-    data |= (PORTF >> 1) & 0x01; /* BTN1 */
-
-    return data;
-}
-
 static int count = 0;
+static int game_over_count = 200;
+static int sc = 0;
 
 void input_update(void) {
     /* State needs to be saved in case the player pauses whilst under */
     /* some kind of boost */
     static int prev_state;
 
-    /* As data can be volatile, save it in a local variable for reading */
-    int8_t const val = data;
+    /*************************** Game instructions *******************************/
+    if (state == STATE_PLAYING_SURVIVAL_MODE) {
 
-    /* Set inversion flag */
-    invert = val & SW3;
-    /* Game instructions */
-    if (state == STATE_MENU_TESTLED) {
-        if (getsw() == 8) {
-            prev_state = state;
-            interface_menu_load_paused();
-        }
-
-    }
-
-    /* Game instructions */
-    if (state == STATE_MENU_TESTLED || state == STATE_PLAYING_SURVIVAL_MODE) {
-        if (getsw() == 8) {
-            prev_state = state;
-            interface_menu_load_paused();
-        }
-
-        if (((getbtns_all() >> 2) & 0x1) || ((getbtns_all() >> 3) & 0x3) || ((getbtns_all() & 0x1))) {
-            move_ship();
-        }
-
-        if (getsw() == 1) {
+        if (getSwitch(1)) {
             reload_missiles();
         }
+
+        if (getSwitch(4)) {
+            prev_state = state;
+            menu_load_paused();
+        }
+
+        if (getSwitch(2) && !game_over() && !getSwitch(4)) {
+            graphics_print(2, 3, get_time_string());
+        }
+
+        if (getBtn(4) || getBtn(1))
+            move_ship();
 
         if (getBtn(3)) {
             for (int i = 0; i < AMMO; i++) {
@@ -191,6 +174,7 @@ void input_update(void) {
                     m_array[i].posY = p.posY;
                 }
             }
+
             if (count % 5 == 0)
                 shoot('p');
         }
@@ -201,25 +185,29 @@ void input_update(void) {
 
     }
 
+    if (state == STATE_GAME_OVER) {
 
+        if(getBtn(1)){
+            graphics_reload();
+            graphics_clear();
+                menu_load_main();
+            }
+        }
 
-/* Menu instructions */
+    /*************************** Menu instructions *******************************/
     if (state & STATE_MENU) {
         quicksleep(MENU_DELAY);
 
-        if (val & BTN3)
+        if (getBtn(3))
+            menu_button_next();
 
-            interface_button_next();
+        else if (getBtn(2))
+            menu_button_press();
 
-        else if (val & BTN2)
+        else if (getBtn(1))
+            menu_button_prev();
 
-            interface_button_press();
-
-        else if (val & BTN1)
-
-            interface_button_prev();
-
-        if (state == STATE_MENU_PAUSED && !(val & SW4))
+        if (state == STATE_MENU_PAUSED && !(getSwitch(4)))
             state = prev_state;
 
 
@@ -227,7 +215,7 @@ void input_update(void) {
 
 
 /* Reset data for next polling */
-    data = 0;
+    // data = 0;
 }
 
 /**

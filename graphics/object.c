@@ -1,10 +1,17 @@
 #include "../includes/objects.h"
 #include "../includes/functions.h"
+
 #include <stdlib.h>
 #include <stdint.h>
-
+#include "../includes/graphics.h"
 /* === CONSTRUCTORS === */
-
+/**
+ TODO:
+ * add new enemy, "kamikaze"
+ * spawns only after difficulty have reached a certain level
+ * Are not able to avoid missiles, but comes at the player ship at high speed
+ */
+void set_led(int led, int state);
 /* Player constructor */
 void new_player(void) {
     p.posX = 15;
@@ -18,26 +25,52 @@ void new_player(void) {
 
 
     const int p_shape[10][10] = {
-            {1, 1, 0, 0, 1, 1, 0, 0, 1, 1}, {1, 1, 1, 0, 1, 1, 0, 1, 1, 1},
-            {1, 0, 1, 0, 1, 1, 0, 1, 0, 1}, {1, 0, 1, 1, 1, 1, 1, 1, 0, 1},
-            {0, 0, 0, 1, 1, 1, 1, 0, 0, 0}, {0, 0, 1, 1, 1, 1, 1, 1, 0, 0},
-            {0, 0, 1, 1, 1, 1, 1, 1, 0, 0}, {0, 0, 1, 0, 1, 1, 0, 1, 0, 0},
-            {0, 0, 1, 0, 1, 1, 0, 1, 0, 0}, {0, 0, 0, 0, 1, 1, 0, 0, 0, 0},
+            {1, 1, 0, 0, 1, 1, 0, 0, 1, 1},
+            {1, 1, 1, 0, 1, 1, 0, 1, 1, 1},
+            {1, 0, 1, 0, 1, 1, 0, 1, 0, 1},
+            {1, 0, 1, 1, 1, 1, 1, 1, 0, 1},
+            {0, 0, 0, 1, 1, 1, 1, 0, 0, 0},
+            {0, 0, 1, 1, 1, 1, 1, 1, 0, 0},
+            {0, 0, 1, 1, 1, 1, 1, 1, 0, 0},
+            {0, 0, 1, 0, 1, 1, 0, 1, 0, 0},
+            {0, 0, 1, 0, 1, 1, 0, 1, 0, 0},
+            {0, 0, 0, 0, 1, 1, 0, 0, 0, 0},
 
 
     };
 
-    /*
-     *          {1, 1, 0, 0, 1, 1, 0, 0, 1, 1}, {1, 1, 1, 0, 1, 1, 0, 1, 1, 1},
-                {1, 0, 1, 0, 1, 1, 0, 1, 0, 1}, {1, 0, 1, 1, 1, 1, 1, 1, 0, 1},
-                {0, 0, 0, 1, 1, 1, 1, 0, 0, 0}, {0, 0, 1, 1, 1, 1, 1, 1, 0, 0},
-                {0, 0, 1, 1, 1, 1, 1, 1, 0, 0}, {0, 0, 1, 0, 1, 1, 0, 1, 0, 0},
-                {0, 0, 1, 0, 1, 1, 0, 1, 0, 0}, {0, 0, 0, 0, 1, 1, 0, 0, 0, 0},
-     */
+
     int i, j;
     for (i = 0; i < 10; i++)
         for (j = 0; j < 10; j++)
             p.objForm[i][j] = p_shape[i][j];
+
+}
+
+void new_shield(void) {
+    s.posX = p.posX + 2;
+    s.posY = p.posY;
+    s.size = 10;
+    s.health = 1;
+    s.radius = 2;
+    s.is_alive = 0;
+    const int s_shape[10][10] = {
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+            {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+            {0, 1, 0, 0, 0, 0, 0, 0, 1, 0},
+            {0, 0, 1, 1, 1, 1, 1, 1, 0, 0}
+    };
+
+    int i, j;
+    for (i = 0; i < 10; i++)
+        for (j = 0; j < 10; j++)
+            s.objForm[i][j] = s_shape[i][j];
 
 }
 
@@ -50,6 +83,7 @@ Missile new_missile(void) {
     m.size = 10;
     m.is_alive = 1;
     m.radius = 3;
+    m.health = 1;
     int m_shape[10][10] = {
             {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
             {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -71,12 +105,12 @@ Missile new_missile(void) {
     return m;
 }
 
-Enemy new_enemy(void) {
+Enemy_fighter new_enemy_fighter(void) {
     /** enemies and meteors have a default position outside of display **/
     /** is_alive is set as 0 by default and changed to 1 when spawned**/
-    Enemy e;
+    Enemy_fighter e;
     e.posX = 110;
-    e.posY = 10;
+    e.posY = 40;
     e.velX = -0.3;
     e.velY = 0;
     e.size = 10;
@@ -85,15 +119,15 @@ Enemy new_enemy(void) {
     e.health = 1;
     const int e_shape[10][10] = {
             {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {0, 0, 0, 1, 1, 1, 1, 0, 0, 0},
-            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {0, 0, 1, 0, 0, 0, 0, 1, 0, 0},
-            {0, 1, 1, 1, 1, 1, 1, 1, 1, 0},
+            {0, 1, 0, 0, 0, 0, 0, 0, 1, 0},
             {0, 1, 0, 0, 1, 1, 0, 0, 1, 0},
+            {0, 1, 0, 1, 1, 1, 1, 0, 1, 0},
+            {0, 1, 1, 1, 1, 1, 1, 1, 1, 0},
+            {0, 1, 0, 1, 1, 1, 1, 0, 1, 0},
             {0, 0, 0, 1, 1, 1, 1, 0, 0, 0},
-            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
             {0, 0, 0, 0, 1, 1, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 1, 1, 0, 1, 1, 0, 1, 1, 0},
+            {0, 1, 1, 1, 0, 0, 1, 1, 1, 0},
     };
 
     int i, j;
@@ -104,7 +138,7 @@ Enemy new_enemy(void) {
     return e;
 }
 
-EnemyShot new_enemyShot(void){
+EnemyShot new_enemyShot(void) {
     EnemyShot enemyShot;
     enemyShot.posX = e_array[0].posX;
     enemyShot.posY = e_array[0].posY;
@@ -132,6 +166,37 @@ EnemyShot new_enemyShot(void){
             enemyShot.objForm[i][j] = es_shape[i][j];
         }
     return enemyShot;
+}
+
+Enemy_Kamikaze new_kamikaze_enemy(void) {
+    Enemy_Kamikaze k;
+    k.posX = 110;
+    k.posY = 32;
+    k.velX = -2;
+    k.velY = 0;
+    k.size = 10;
+    k.is_alive = 1;
+    k.radius = 4;
+    k.health = 1;
+    const int k_shape[10][10] = {
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 1, 1, 0, 0, 0, 0},
+            {0, 0, 0, 0, 1, 1, 0, 0, 0, 0},
+            {0, 0, 0, 1, 1, 1, 1, 0, 0, 0},
+            {0, 0, 1, 1, 1, 1, 1, 1, 0, 0},
+            {0, 1, 0, 0, 1, 1, 0, 0, 1, 0},
+            {0, 0, 0, 0, 1, 1, 0, 0, 0, 0},
+            {0, 0, 0, 0, 1, 1, 0, 0, 0, 0},
+            {0, 0, 0, 1, 1, 1, 1, 0, 0, 0},
+    };
+
+    int i, j;
+    for (i = 0; i < 10; i++)
+        for (j = 0; j < 10; j++)
+            k.objForm[i][j] = k_shape[i][j];
+
+    return k;
 }
 
 Meteor new_meteor(void) {
@@ -162,20 +227,6 @@ Meteor new_meteor(void) {
             {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     };
 
-/*
-    const int r_shape[10][10] = {
-            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {0, 0, 1, 1, 0, 0, 1, 1, 0, 0},
-            {0, 0, 0, 0, 1, 1, 0, 0, 0, 0},
-            {0, 0, 0, 1, 0, 0, 1, 0, 0, 0},
-            {0, 0, 0, 1, 1, 1, 1, 0, 0, 0},
-            {0, 0, 0, 1, 1, 1, 1, 0, 0, 0},
-            {0, 0, 0, 0, 1, 1, 0, 0, 0, 0},
-            {0, 0, 0, 1, 0, 0, 1, 0, 0, 0},
-            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    };
-    */
     int i, j;
     for (i = 0; i < 10; i++)
         for (j = 0; j < 10; j++)
@@ -186,83 +237,81 @@ Meteor new_meteor(void) {
 
 /* Object movement */
 void object_move(Object *o) {
-        o->posX += o->velX;
-        o->posY += o->velY;
-
+    o->posX += o->velX;
+    o->posY += o->velY;
 }
 
 /* === UPDATE === */
 void draw(Object, int);
 
-/* Player Update - Check if within screen */
-void player_move(void) {
-    p.posX += p.velX;
+/** Updates the player**/
+void player_update(Object *o, int shield) {
+    draw(*o, 1);
 
+    if (shield) {
+        s.posY = o->posY;
+        s.posX = o->posX + 6;
+        s.is_alive = 1;
+    } else {
+        s.posY = 32;
+        s.posX = o->posX + 4;
+        s.is_alive = 0;
+    }
+    draw(s, shield);
 }
 
-void player_update(Object *p) {
-    object_move(p);
-    draw(*p, 1);
-}
 
-/* Updates the object. Inverts the Y-velocity if border hit.  */
-/* TODO
- * if(!whitinscreen)
- *  reset coordinates
- * */
-void enemy_updating(Object *e){
+/** Updates enemies. set the Y-velocity to 0 if border hit.  **/
+void enemy_updating(Object *e) {
     draw(*e, 0);
-    if (!within_screen(e)) {
+    if (!withinScreen(e)) {
         e->is_alive = 0;
     }
 
-    if(e->is_alive){
-        if ((e->posY < 3) || (e->posY + e->size >= 31)){
+    if (e->is_alive) {
+        if ((e->posY < 3) || (e->posY + e->size >= 31)) {
             e->velY = 0;
-           // e->posY = e->posY - 1;
         }
-            object_move(e);
+        object_move(e);
         draw(*e, 1);
-    }
-    else
+    } else {
         draw(*e, 0);
+        e->posY = 32;
+    }
+
 }
 
+/** Updates the object. Inverts the Y-velocity if border hit.  **/
 void object_update(Object *o) {
     draw(*o, 0);
-    if (!within_screen(o)) {
+    if (!withinScreen(o)) {
         o->is_alive = 0;
     }
     if (o->is_alive) {
         if ((o->posY < 3) || (o->posY + o->size >= 31))
-           // o->velY = 0;
+            // o->velY = 0;
             o->velY = -1 * o->velY * 0.90;
-        if (within_screen(o))
+        if (withinScreen(o))
             object_move(o);
         draw(*o, 1);
     } else {
         draw(*o, 0);
+        o->posY = 32;
     }
 
 }
 
-/* Check if within game borders */
-void within_border(Object *o) {
-    if (o->posX < 0 || o->posX > 150 || o->posY < 0 || o->posY > 31)
-        o->is_alive = 0;
-}
 
-/* Check if within screen */
-/*  @author Johan Edman */
-int within_screen(Object *o) {
+/** Check if object is withing screen **/
+int withinScreen(Object *o) {
     return (o->posX > 0 && o->posX < (128 - o->size) &&
-            (o->posY + o->velY ) > 0 && (o->posY + o->size + o->velY) < 32);
+            (o->posY + o->velY) > 0 && (o->posY + o->size + o->velY) < 32);
 }
 
 int dist(float, float, float, float);
 
 int check_collision(Object dis, Object dat) {
-    if(dis.radius > dat.radius)
+    if (dis.radius > dat.radius)
         return dist(dis.posX, dis.posY, dat.posX, dat.posY) <= dis.radius;
     else
         return dist(dis.posX, dis.posY, dat.posX, dat.posY) <= dat.radius;

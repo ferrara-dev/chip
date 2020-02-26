@@ -4,18 +4,32 @@
 #include <stdint.h>
 #include <pic32mx.h>
 #include "../includes/peripherals.h"
+#include "../includes/graphics.h"
 #include "../includes/functions.h"
 #include "../includes/icon.h"
 #include <stdlib.h>
 #include "../includes/entity.h"
 #include "../includes/objects.h"
 #include "math.h"
+
+#define DISPLAY_VDD PORTFbits.RF6
+#define DISPLAY_VBATT PORTFbits.RF5
+#define DISPLAY_COMMAND_DATA PORTFbits.RF4
+#define DISPLAY_RESET PORTGbits.RG9
+
+#define DISPLAY_VDD_PORT PORTF
+#define DISPLAY_VDD_MASK 0x40
+#define DISPLAY_VBATT_PORT PORTF
+#define DISPLAY_VBATT_MASK 0x20
+#define DISPLAY_COMMAND_DATA_PORT PORTF
+#define DISPLAY_COMMAND_DATA_MASK 0x10
+#define DISPLAY_RESET_PORT PORTG
+#define DISPLAY_RESET_MASK 0x200
+
 uint8_t game[128 * 4] = {0};
 volatile int invert = 0;
-Ball ball;
-Player o;
 /* Pixel manipulation will take place on this static video buffer
- * which will be written to the screen every tick 
+ * which will be written to the screen every tick
  */
 static int8_t video_buffer[DSP_COLUMNS][DSP_PAGES];
 
@@ -85,26 +99,7 @@ void draw(Object o, int draw) {
             }
 }
 
-void draw_o(Object o, int draw) {
 
-    for (int x = 0; x < o.size; x++) {
-        for (int y = 0; y < o.size; y++)
-            video_buffer[(int) o.posX + x][(int) o.posY + y] |= reverse_byte(o.objForm2[y]);
-    }
-
-}
-/** Rita en boll på skärmen **/
-/*
-void draw(Ball ball) {
-    int i = 0;
-    int j = 0;
-    for (i = 0; i < 12; i++) {
-        graphics_set(ball.ball[i][0], ball.ball[i][1], 1);
-    }
-
-}
-
-*/
 /* Set one pixel to either white or black
  */
 void graphics_set(int x, int y, int val) {
@@ -119,30 +114,6 @@ void graphics_set(int x, int y, int val) {
     video_buffer[x][y >> 3] &= ~(1 << (y & 0x07));
     /* Write */
     video_buffer[x][y >> 3] |= (val ? 1 : 0) << (y & 0x07);
-}
-
-void display_update(void) {
-    int i, j, k;
-    int c;
-    for (i = 0; i < 4; i++) {
-        set_command_mode();
-        spi_send_recv(0x22);
-        spi_send_recv(i);
-
-        spi_send_recv(0x0);
-        spi_send_recv(0x10);
-
-        set_data_mode();
-
-        for (j = 0; j < 16; j++) {
-            c = video_buffer[i][j];
-            if (c & 0x80)
-                continue;
-
-            for (k = 0; k < 8; k++)
-                spi_send_recv(font2[c * 8 + k]);
-        }
-    }
 }
 
 /* Write the private video buffer to screen
@@ -203,9 +174,13 @@ void graphics_clear(void) {
  * Only supports capital letters, numbers, <:> and <.>
  */
 static int ascii_table_initialized = 0;
-char ascii[96];
-
+char ascii[97];
+void reverse_font(int8_t *f);
 void init_ascii(void) {
+  //  for(int j = 0; j < 128; j++){
+   //     font[j] = reverse_font(font8x8[j]);
+   // }
+
     int a = 0;
     char k = ' ';
     while (k < '~') {
@@ -214,6 +189,7 @@ void init_ascii(void) {
         a++;
     }
     ascii_table_initialized = 1;
+
 }
 
 void graphics_print(int offset, int line, char const *chrv) {
@@ -230,7 +206,7 @@ void graphics_print(int offset, int line, char const *chrv) {
 
     while (*chrv) {
         int idx;
-        while (j < 96) {
+        while (j < 97) {
             if (*chrv == ascii[j]) {
                 idx = j;
                 break;
@@ -247,55 +223,40 @@ void graphics_print(int offset, int line, char const *chrv) {
     }
 }
 
-/**
+/****** draw_borders(void) ******
  * Draws borders on the display
- * Author: Alex Diaz
- */
+ * no return value
+ ********************************/
 void draw_borders(void) {
     int i;
     for (i = 0; i < DSP_COLUMNS; i++) {
         graphics_set(i, DSP_ROWS - 1, 1);
         graphics_set(i, 0, 1);
     }
-    // for (i = 0; i < 9; i++) graphics_set(DSP_ROWS - 26, i, 1);
-    //for (i = DSP_COLUMNS - 26; i < DSP_COLUMNS; i++) graphics_set(i, 9, 1);
 }
 
 
-void display_string(int line, char *s) {
-    int i;
-    if (line < 0 || line >= 4)
-        return;
-    if (!s)
-        return;
-
-    for (i = 0; i < 16; i++)
-        if (*s) {
-            textbuffer[line][i] = *s;
-            s++;
-        } else
-            textbuffer[line][i] = ' ';
-}
-/*
-void display_image(int x, const uint8_t *data) {
+/**
+ * Renders the full screen
+ */
+void renderScreen(uint8_t arr[]) {
     int i, j;
 
     for(i = 0; i < 4; i++) {
-        DISPLAY_CHANGE_TO_COMMAND_MODE;
-
+        DISPLAY_COMMAND_DATA_PORT &= ~DISPLAY_COMMAND_DATA_MASK;
         spi_send_recv(0x22);
         spi_send_recv(i);
 
-        spi_send_recv(x & 0xF);
-        spi_send_recv(0x10 | ((x >> 4) & 0xF));
+        spi_send_recv(0 & 0xF);
+        spi_send_recv(0x10 | ((0 >> 4) & 0xF));
 
-        DISPLAY_CHANGE_TO_DATA_MODE;
+        DISPLAY_COMMAND_DATA_PORT |= DISPLAY_COMMAND_DATA_MASK;
 
-        for(j = 0; j < 32; j++)
-            spi_send_recv(~data[i*32 + j]);
+        for(j = 0; j < 128; j++)
+            spi_send_recv(arr[i*128 + j]);
     }
 }
-*/
+
 #define ITOA_BUFSIZ ( 24 )
 
 char *itoaconv(int num) {

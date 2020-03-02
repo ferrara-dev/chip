@@ -2,17 +2,19 @@ graphics/menu.c.o: graphics/menu.c /opt/mcb32tools/include/string.h \
  /opt/mcb32tools/include/klibc/extern.h \
  /opt/mcb32tools/lib/gcc/mipsel-mcb32-elf/4.9.2/include/stddef.h \
  graphics/../includes/menu.h graphics/../includes/game.h \
- graphics/../includes/entity.h /opt/mcb32tools/include/stdint.h \
+ graphics/../includes/objects.h /opt/mcb32tools/include/stdint.h \
  /opt/mcb32tools/lib/gcc/mipsel-mcb32-elf/4.9.2/include/stdint-gcc.h \
- graphics/../includes/vector.h graphics/../includes/icon.h \
- graphics/../includes/objects.h graphics/../includes/button.h \
- graphics/../includes/graphics.h graphics/../includes/functions.h
+ graphics/../includes/label.h graphics/../includes/graphics.h \
+ graphics/../includes/icon.h graphics/../includes/functions.h \
+ /opt/mcb32tools/include/stdlib.h /opt/mcb32tools/include/klibc/inline.h \
+ /opt/mcb32tools/lib/gcc/mipsel-mcb32-elf/4.9.2/include/stdbool.h
 graphics/menu.c /opt/mcb32tools/include/string.h :
  /opt/mcb32tools/include/klibc/extern.h :
  /opt/mcb32tools/lib/gcc/mipsel-mcb32-elf/4.9.2/include/stddef.h :
  graphics/../includes/menu.h graphics/../includes/game.h :
- graphics/../includes/entity.h /opt/mcb32tools/include/stdint.h :
+ graphics/../includes/objects.h /opt/mcb32tools/include/stdint.h :
  /opt/mcb32tools/lib/gcc/mipsel-mcb32-elf/4.9.2/include/stdint-gcc.h :
- graphics/../includes/vector.h graphics/../includes/icon.h :
- graphics/../includes/objects.h graphics/../includes/button.h :
- graphics/../includes/graphics.h graphics/../includes/functions.h :
+ graphics/../includes/label.h graphics/../includes/graphics.h :
+ graphics/../includes/icon.h graphics/../includes/functions.h :
+ /opt/mcb32tools/include/stdlib.h /opt/mcb32tools/include/klibc/inline.h :
+ /opt/mcb32tools/lib/gcc/mipsel-mcb32-elf/4.9.2/include/stdbool.h :

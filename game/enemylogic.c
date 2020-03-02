@@ -7,7 +7,7 @@
 #include "../includes/menu.h"
 #include "../includes/functions.h"
 #include "../includes/peripherals.h"
-#include "../includes/button.h"
+#include "../includes/label.h"
 #include "../includes/objects.h"
 #include "../includes/graphics.h"
 #include "../includes/input.h"

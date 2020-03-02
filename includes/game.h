@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "entity.h"
 #include "objects.h"
 
 
@@ -29,7 +28,7 @@ enum STATE {
     STATE_MENU = 0x0002,
     STATE_MENU_MAIN = 0x0006,
     STATE_MENU_HIGHSCORES = 0x000A,
-
+    STATE_MENU_GAMEOVER = 0x000E,
     STATE_MENU_PAUSED = 0x0022,
     STATE_MENU_HELP = 0x0042
 };
@@ -51,7 +50,6 @@ static char textstring[] = "00:00                               ";
 
 char *get_time_string(void);
 void reset_playtime(void);
-
 int gameTimeSeconds;
 int high_scores[3];
 
@@ -84,7 +82,6 @@ int game_over(void);
 
 void LED_test_start(void);
 
-void LED_test_tick(void);
 
 void survival_mode_start(void);
 

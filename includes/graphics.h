@@ -6,6 +6,11 @@
 #define DSP_ROWS    32
 #define DSP_PAGES   4
 
+/* Pixel manipulation will take place on this static video buffer
+ * which will be written to the screen every tick
+ */
+static int8_t video_buffer[DSP_COLUMNS][DSP_PAGES];
+
 void graphics_init(void);
 void draw(Object o, int);
 

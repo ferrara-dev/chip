@@ -4,7 +4,6 @@
 #include <pic32mx.h>
 #include "../includes/peripherals.h"
 #include "../includes/game.h"
-#include "../includes/entity.h"
 #include "../includes/menu.h"
 #include "../includes/functions.h"
 #include "../includes/objects.h"
@@ -12,33 +11,6 @@
 #include "../includes/graphics.h"
 /* There needs to be a delay in the menus, otherwise it's hard to select buttons */
 #define MENU_DELAY 1200000
-
-//void interface_menu_load_paused(void);
-
-/* The controls are as follows:
- *      SW3: Toggle inverted display
- * When in menu:
- *      BTN2: Press button
- *      BTN1: Up
- *      BTN3: Down
- * When in game:
- *      SW4: Pause
- *      BTN4: Left
- *      BTN3: Down
- *      BTN2: Up
- *      BTN1: Right
- */
-
-enum INPUT {
-    BTN1 = 0x01,
-    BTN2 = 0x02,
-    BTN3 = 0x04,
-    BTN4 = 0x08,
-    SW1 = 0x10,
-    SW2 = 0x20,
-    SW3 = 0x40,
-    SW4 = 0x80
-};
 
 /** returns value of specified button input value */
 int getBtn(int index) {
@@ -74,54 +46,6 @@ int getSwitch(int index) {
     return 0;
 }
 
-void set_sw1_interrupt(void) {
-    /** enabling interupts from sw1 **/
-    IPC(1) |= 0x1c000000;
-    IEC(0) = IEC(0) | (1 << 7);
-
-}
-
-void set_sw2_interrupt(void) {
-    /** enabling interupts from sw2  **/
-    IECSET(0) = 0x800;    //enable interrupt for int2, bit 11
-    IPCSET(2) = 0x1C000000; //set priority of switch 2 to 111
-}
-
-void set_sw3_interrupt(void) {
-    /** enabling interupts from sw3  **/
-    IPC(3) |= 0x1c000000;
-    IEC(0) = IEC(0) | (1 << 15);
-}
-
-void set_sw4_interrupt(void) {
-    /** enabling interupts from sw3  **/
-    IPC(4) |= 0x1c000000;
-    IEC(0) |= (1 << 19);
-
-    INTCONSET = 0x00000010; // clear the bit for falling edge trigger
-
-}
-
-void set_sw_interrupts(int index) {
-    switch (index) {
-        case 1:
-            /** enabling interupts from sw1 **/
-            set_sw1_interrupt();
-            break;
-        case 2:
-            /** enabling interupts from sw2  **/
-            set_sw2_interrupt();
-            break;
-        case 3:
-            set_sw3_interrupt();
-            break;
-        case 4:
-            set_sw4_interrupt();
-            break;
-        default:
-            return;
-    }
-}
 
 void input_init(void) {
     /* PORTD takes SW4-SW1 in bits <11:8> and BTN4-BTN2 in bits <7:5> */
@@ -150,11 +74,6 @@ void input_update(void) {
 
     /*************************** Game instructions *******************************/
     if (state == STATE_PLAYING_SURVIVAL_MODE) {
-
-        if (getSwitch(1)) {
-            reload_missiles();
-        }
-
         if (getSwitch(4)) {
             prev_state = state;
             menu_load_paused();
@@ -168,12 +87,6 @@ void input_update(void) {
             move_ship();
 
         if (getBtn(3)) {
-            for (int i = 0; i < AMMO; i++) {
-                if (!m_array[i].is_alive) {
-                    m_array[i].posX = p.posX;
-                    m_array[i].posY = p.posY;
-                }
-            }
 
             if (count % 5 == 0)
                 shoot('p');
@@ -190,7 +103,7 @@ void input_update(void) {
         if(getBtn(1)){
             graphics_reload();
             graphics_clear();
-                menu_load_main();
+            menu_load_gameover();
             }
         }
 
@@ -199,13 +112,13 @@ void input_update(void) {
         quicksleep(MENU_DELAY);
 
         if (getBtn(3))
-            menu_button_next();
+            menu_label_next();
 
         else if (getBtn(2))
-            menu_button_press();
+            menu_label_press();
 
         else if (getBtn(1))
-            menu_button_prev();
+            menu_label_prev();
 
         if (state == STATE_MENU_PAUSED && !(getSwitch(4)))
             state = prev_state;
@@ -218,10 +131,10 @@ void input_update(void) {
     // data = 0;
 }
 
-/**
+/** Only used to generate a seed for the rand() function **
  * Initializes analogue pins and turns on ADC.
  * Author: Johan Edman
- */
+ **********************************************************/
 void init_adc(void) {
     AD1PCFG = 0xFBFF;
     AD1CON1 = 4 << 8 | 7 << 5;

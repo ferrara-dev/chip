@@ -4,15 +4,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include "../includes/graphics.h"
-/* === CONSTRUCTORS === */
-/**
- TODO:
- * add new enemy, "kamikaze"
- * spawns only after difficulty have reached a certain level
- * Are not able to avoid missiles, but comes at the player ship at high speed
- */
+/** === CONSTRUCTORS === **/
 void set_led(int led, int state);
-/* Player constructor */
+
 void new_player(void) {
     p.posX = 15;
     p.posY = 10;
@@ -106,8 +100,6 @@ Missile new_missile(void) {
 }
 
 Enemy_fighter new_enemy_fighter(void) {
-    /** enemies and meteors have a default position outside of display **/
-    /** is_alive is set as 0 by default and changed to 1 when spawned**/
     Enemy_fighter e;
     e.posX = 110;
     e.posY = 40;
@@ -235,7 +227,7 @@ Meteor new_meteor(void) {
     return meteor;
 }
 
-/* Object movement */
+/* move object */
 void object_move(Object *o) {
     o->posX += o->velX;
     o->posY += o->velY;
@@ -247,6 +239,13 @@ void draw(Object, int);
 /** Updates the player**/
 void player_update(Object *o, int shield) {
     draw(*o, 1);
+
+    for (int i = 0; i < AMMO; i++) {
+        if (!m_array[i].is_alive) {
+            m_array[i].posX = p.posX;
+            m_array[i].posY = p.posY;
+        }
+    }
 
     if (shield) {
         s.posY = o->posY;
@@ -302,7 +301,7 @@ void object_update(Object *o) {
 }
 
 
-/** Check if object is withing screen **/
+/** Check if object is within screen **/
 int withinScreen(Object *o) {
     return (o->posX > 0 && o->posX < (128 - o->size) &&
             (o->posY + o->velY) > 0 && (o->posY + o->size + o->velY) < 32);
@@ -310,6 +309,7 @@ int withinScreen(Object *o) {
 
 int dist(float, float, float, float);
 
+/** Check if the distance between two objects is less then the smallest radius**/
 int check_collision(Object dis, Object dat) {
     if (dis.radius > dat.radius)
         return dist(dis.posX, dis.posY, dat.posX, dat.posY) <= dis.radius;

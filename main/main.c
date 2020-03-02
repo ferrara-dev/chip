@@ -4,14 +4,14 @@
 #include <pic32mx.h>
 #include "../includes/peripherals.h"
 #include "../includes/game.h"
-#include "../includes/level.h"
-#include "../includes/entity.h"
 #include "../includes/menu.h"
 #include "../includes/timers.h"
-#include "../includes/standard.h"
+#include "../includes/functions.h"
 #include "../includes/memory.h"
 #include "../includes/input.h"
 #include "../includes/graphics.h"
+#include "../includes/icon.h"
+
 
 void tick(void);
 
@@ -49,6 +49,7 @@ void disp_game_over(void) {
     icon_draw(icon_R, 106, 16);
 
 }
+
 /******************* tick(void) **********************
  * this function is a ISR that is invoked at each tmr2
  * overflow.
@@ -88,7 +89,7 @@ void tick(void) {
             disp_game_over();
         }
 
-        graphics_postprocess();
+       // graphics_postprocess();
         graphics_reload();
         graphics_clear();
 
@@ -166,10 +167,11 @@ void init(void) {
     /* tmr2 configuration */
     enable_tmr2();
     enable_tmr2_interrupt();
- //   set_sw4_interrupt();
     enableMultiVectorMode();
 
 }
+
+
 void sw_4_interrupt(void){
     IFSCLR(0) &= (1 << 19);
     if(state == STATE_PLAYING_SURVIVAL_MODE) {

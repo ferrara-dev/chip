@@ -79,9 +79,6 @@ void itodsconv(char *buffer, int x) {
     } while (x);
 }
 
-/* END OF COPIED CODE */
-
-
 
 unsigned int seed(void) {
     int n = 8;
@@ -99,17 +96,9 @@ unsigned int seed(void) {
     }
     return seed;
 }
+/* END OF COPIED CODE */
 
-/* Reverse every bit in one byte 
- */
-int8_t reverse_byte(int8_t x) {
-    int8_t y = 0;
 
-    for (int i = 0; i < 7; ++i) {
-        y |= ((x & (1 << i)) >> i) << (7 - i);
-    }
-    return y;
-}
 
 int randint(int min, int max) {
     int r = rand() % (max + 1);

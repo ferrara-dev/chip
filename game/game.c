@@ -8,7 +8,7 @@
 #include "../includes/icon.h"
 #include "../includes/menu.h"
 #include "../includes/functions.h"
-#include "../includes/button.h"
+#include "../includes/label.h"
 #include "../includes/objects.h"
 #include "../includes/graphics.h"
 #include "../includes/input.h"
@@ -19,9 +19,9 @@
 int state;
 int gameTimeSeconds;
 
-int cooldown = 0;
-int es_cooldown = 0;
-int es_counter = 0;
+
+int es_cooldown = 0; /// enemy-shot cooldown
+int es_counter = 0; /// enemy-shot
 
 int highscore_flag = 0;
 int player_score = 0;
@@ -35,41 +35,35 @@ void in_game_ISR(void);
 int missile_reload_cooldown = 0;
 static int meteorCount = 0;
 
-/**
- * TODO
- * Add bonus
- * if 200 points are earned without loosing any health --> bonus
- * 1. Piercing shots for 10 sec - if health = 3
- * 2. Increase health - if health < 3
- *
- *
- */
+/********************* player_bonus(void) *********************
+ * Player gets one bonus health point if 50 points are earned
+ * without loosing any health
+ * if health is full, player gets a shield instead
+ **************************************************************/
 
 int bonus_count;
 int shield_active;
 int kill_streak;
 int kill_counter;
+
 void reset_bonus_count(void) {
     bonus_count = 0;
 }
 
 void player_bonus(void) {
-    if (bonus_count >= 100) {
+    if (bonus_count >= 50) {
         if (p.health < PLAYER_MAX_HEALTH) {
             p.health++;
             reset_bonus_count();
-        }
-
-        else if (p.health >= PLAYER_MAX_HEALTH) {
+        } else if (p.health >= PLAYER_MAX_HEALTH) {
             shield_active = 1;
             reset_bonus_count();
         }
     }
 }
 
-
 void move_ship(void) {
-    if (state == STATE_PLAYING_SURVIVAL_MODE) {
+    if (state == STATE_PLAYING_SURVIVAL_MODE && !getSwitch(1)) {
         if (getBtn(4)) {
             if (p.posY > 5) {
                 p.posY -= p.velY;
@@ -79,6 +73,20 @@ void move_ship(void) {
         if (getBtn(1)) {
             if (p.posY < 20) {
                 p.posY += p.velY;
+            }
+
+        }
+
+    } else if (state == STATE_PLAYING_SURVIVAL_MODE && getSwitch(1)) {
+        if (getBtn(4)) {
+            if (p.posX > 20) {
+                p.posX -= p.velX;
+            }
+        }
+
+        if (getBtn(1)) {
+            if (p.posY < 118) {
+                p.posX += p.velX;
             }
 
         }
@@ -259,6 +267,8 @@ void spawn_enemy_shot(void) {
     }
 }
 
+
+int cooldown = 0;
 void shoot(char c) {
     switch (c) {
         case 'p': {
@@ -526,7 +536,7 @@ void update_leds(char c) {
  **/
 void update_score(void) {
     if (!game_over())
-        graphics_print(2, 0, itoaconv(player_score));
+        graphics_print(2, 3, itoaconv(player_score));
     else {
         highscore_flag = 0;
         for (int i = 0; i < 3; i++)
@@ -543,8 +553,8 @@ void update_score(void) {
             }
 
             case 2: {
-                third_place = second_place;
-                write_int(TH_ADDR, third_place);
+               // third_place = second_place;
+                write_int(TH_ADDR, second_place);
                 second_place = player_score;
                 write_int(SE_ADDR, second_place);
                 high_scores[1] = second_place;
@@ -652,24 +662,6 @@ void survival_mode_tick(void) {
     }
 }
 
-
-void LED_test_tick(void) {
-    static int timeoutcount = 0;
-    if (IFS(0) & 0x9000) {
-
-        IFSCLR(0) = 0x9000;
-        timeoutcount++;
-
-        // display_string(0, itoaconv(getbtns_all())); /// Uppdate and Display pushbtn input once every 0,1 second
-        //display_update();
-        //if (timeoutcount == 10) {
-        //  PORTE = PORTE + 0x1;
-        // display_string(3, itoaconv(getsw()));   /// Uppdate and Display switch input once every second
-        //  display_update();
-        // tick(&mytime);
-        //
-    }
-}
 
 void increaseDifficulty(void) {
     difficulty += 0.1;

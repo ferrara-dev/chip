@@ -2,8 +2,6 @@
 #include <pic32mx.h>
 #include "../includes/peripherals.h"
 #include "../includes/game.h"
-#include "../includes/level.h"
-#include "../includes/entity.h"
 #include "../includes/menu.h"
 
 int tmr2_state;

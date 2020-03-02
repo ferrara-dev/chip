@@ -13,7 +13,6 @@
 
 extern volatile int invert;
 
-
 void led_init(void);
 
 void led_clear(void);
